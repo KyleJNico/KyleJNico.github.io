@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFL Pick'em Tracker: Kyle vs Clayton</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0d1b2a;
+      color: #e0e1dd;
+      padding-bottom: 120px;
+      line-height: 1.5;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1b263b 0%, #0d1b2a 100%);
+      border-bottom: 3px solid #e0e1dd;
+      padding: 25px 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .header-title h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .header-title p {
+      color: #778da9;
+      font-size: 0.95rem;
+    }
+
+    /* Action Buttons */
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-print {
+      background-color: #e0e1dd;
+      color: #0d1b2a;
+    }
+    .btn-print:hover {
+      background-color: #ffffff;
+      transform: translateY(-2px);
+    }
+    .btn-reset {
+      background-color: #c92a2a;
+      color: #ffffff;
+    }
+    .btn-reset:hover {
+      background-color: #e03131;
+      transform: translateY(-2px);
+    }
+
+    /* Navigation Tabs for Weeks */
+    .week-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 25px;
+      scrollbar-width: thin;
+      scrollbar-color: #415a77 #1b263b;
+    }
+    .week-nav::-webkit-scrollbar {
+      height: 6px;
+    }
+    .week-nav::-webkit-scrollbar-thumb {
+      background: #415a77;
+      border-radius: 3px;
+    }
+    .week-btn {
+      background-color: #1b263b;
+      color: #778da9;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #415a77;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .week-btn:hover {
+      background-color: #415a77;
+      color: #ffffff;
+    }
+    .week-btn.active {
+      background-color: #3a86ff;
+      color: #ffffff;
+      border-color: #3a86ff;
+    }
+
+    /* Games Grid */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    /* Game Card */
+    .game-card {
+      background-color: #1b263b;
+      border-radius: 10px;
+      border: 1px solid #415a77;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #778da9;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-bottom: 1px solid #415a77;
+      padding-bottom: 6px;
+    }
+
+    /* Matchup Display */
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background-color: #0d1b2a;
+    }
+    .team-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .team-type {
+      font-size: 0.75rem;
+      color: #778da9;
+      margin-right: 6px;
+    }
+
+    /* Pick Controls */
+    .picks-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .pick-box {
+      background-color: #0d1b2a;
+      border: 1px dashed #415a77;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+    .player-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .player-kyle { color: #3a86ff; }
+    .player-clayton { color: #ff0055; }
+
+    .pick-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pick-btn {
+      background-color: #1b263b;
+      color: #e0e1dd;
+      border: 1px solid #415a77;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 600;
+    }
+    .pick-btn:hover {
+      border-color: #778da9;
+    }
+
+    /* Kyle Selected Colors */
+    .pick-btn.selected-kyle {
+      background-color: #3a86ff;
+      color: #ffffff;
+      border-color: #3a86ff;
+    }
+    /* Clayton Selected Colors */
+    .pick-btn.selected-clayton {
+      background-color: #ff0055;
+      color: #ffffff;
+      border-color: #ff0055;
+    }
+
+    /* Result Selector */
+    .result-container {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #0d1b2a;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #415a77;
+    }
+    .result-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffb703;
+    }
+    .result-select {
+      background-color: #1b263b;
+      color: #ffffff;
+      border: 1px solid #415a77;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Status Indicators */
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+    .badge-correct {
+      background-color: rgba(56, 176, 0, 0.2);
+      color: #38b000;
+      border: 1px solid #38b000;
+    }
+    .badge-incorrect {
+      background-color: rgba(208, 0, 0, 0.2);
+      color: #d00000;
+      border: 1px solid #d00000;
+    }
+
+    /* Scoreboard Footer */
+    .scoreboard-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #1b263b;
+      border-top: 3px solid #3a86ff;
+      padding: 15px 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+      z-index: 1000;
+    }
+    .scoreboard-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .score-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .score-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .score-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.9rem;
+      background-color: #0d1b2a;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #415a77;
+    }
+    .stat-item span {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .leader-badge {
+      background: linear-gradient(45deg, #ffb703, #fb8500);
+      color: #000;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding-bottom: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+      .header-actions, .week-nav, .scoreboard-bar, .result-container {
+        display: none !important;
+      }
+      header {
+        background: none !important;
+        border-bottom: 2px solid #000 !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        padding: 10px 0 !important;
+      }
+      .header-title h1 {
+        color: #000000 !important;
+      }
+      .header-title p {
+        color: #333333 !important;
+      }
+      .games-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+      }
+      .game-card {
+        background-color: #fff !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+        padding: 10px !important;
+      }
+      .game-header {
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+      }
+      .team-row {
+        background-color: #f0f0f0 !important;
+      }
+      .team-name {
+        color: #000 !important;
+      }
+      .pick-box {
+        border: 1px solid #000 !important;
+        background-color: #fff !important;
+      }
+      .pick-btn {
+        background-color: #fff !important;
+        color: #000 !important;
+        border: 1px solid #ccc !important;
+      }
+      .pick-btn.selected-kyle {
+        background-color: #3a86ff !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .pick-btn.selected-clayton {
+        background-color: #ff0055 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-title">
+      <h1>NFL Pick'em Tracker</h1>
+      <p>Official 2026 Season Schedule • Kyle vs Clayton</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-print" onclick="window.print()">🖨️ Print Sheet</button>
+      <button class="btn btn-reset" onclick="resetPicks()">🔄 Reset Data</button>
+    </div>
+  </header>
+
+  <!-- Week Navigation -->
+  <div class="week-nav" id="weekNav"></div>
+
+  <!-- Games List Grid -->
+  <div class="games-grid" id="gamesGrid"></div>
+</div>
+
+<!-- Scoreboard Sticky Footer -->
+<div class="scoreboard-bar">
+  <div class="scoreboard-inner">
+    <!-- Kyle Stats -->
+    <div class="score-card">
+      <div class="score-name player-kyle">Kyle</div>
+      <div class="score-stats">
+        <div class="stat-item">Wins: <span id="kyleWins">0</span></div>
+        <div class="stat-item">Losses: <span id="kyleLosses">0</span></div>
+        <div class="stat-item">Win %: <span id="kylePct">.000</span></div>
+      </div>
+    </div>
+
+    <!-- Overall Leader Indicator -->
+    <div class="leader-badge" id="leaderBadge">Tied Game</div>
+
+    <!-- Clayton Stats -->
+    <div class="score-card">
+      <div class="score-name player-clayton">Clayton</div>
+      <div class="score-stats">
+        <div class="stat-item">Wins: <span id="claytonWins">0</span></div>
+        <div class="stat-item">Losses: <span id="claytonLosses">0</span></div>
+        <div class="stat-item">Win %: <span id="claytonPct">.000</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 2026 Schedule Dataset (Weeks 2 through 18)
+const nflSchedule = {
+  2: [
+    { id: "w2_1", away: "Detroit Lions", home: "Buffalo Bills", day: "Thu 8:15 PM" },
+    { id: "w2_2", away: "Carolina Panthers", home: "Atlanta Falcons", day: "Sun 1:00 PM" },
+    { id: "w2_3", away: "Cincinnati Bengals", home: "Houston Texans", day: "Sun 1:00 PM" },
+    { id: "w2_4", away: "Cleveland Browns", home: "Tampa Bay Buccaneers", day: "Sun 1:00 PM" },
+    { id: "w2_5", away: "Green Bay Packers", home: "New York Jets", day: "Sun 1:00 PM" },
+    { id: "w2_6", away: "Minnesota Vikings", home: "Chicago Bears", day: "Sun 1:00 PM" },
+    { id: "w2_7", away: "New Orleans Saints", home: "Baltimore Ravens", day: "Sun 1:00 PM" },
+    { id: "w2_8", away: "Philadelphia Eagles", home: "Tennessee Titans", day: "Sun 1:00 PM" },
+    { id: "w2_9", away: "Pittsburgh Steelers", home: "New England Patriots", day: "Sun 1:00 PM" },
+    { id: "w2_10", away: "Jacksonville Jaguars", home: "Denver Broncos", day: "Sun 4:05 PM" },
+    { id: "w2_11", away: "Las Vegas Raiders", home: "Los Angeles Chargers", day: "Sun 4:05 PM" },
+    { id: "w2_12", away: "Miami Dolphins", home: "San Francisco 49ers", day: "Sun 4:25 PM" },
+    { id: "w2_13", away: "Seattle Seahawks", home: "Arizona Cardinals", day: "Sun 4:25 PM" },
+    { id: "w2_14", away: "Washington Commanders", home: "Dallas Cowboys", day: "Sun 4:25 PM" },
+    { id: "w2_15", away: "Indianapolis Colts", home: "Kansas City Chiefs", day: "Sun 8:20 PM" },
+    { id: "w2_16", away: "New York Giants", home: "Los Angeles Rams", day: "Mon 8:15 PM" }
+  ],
+  3: [
+    { id: "w3_1", away: "Atlanta Falcons", home: "Green Bay Packers", day: "Thu 8:15 PM" },
+    { id: "w3_2", away: "Cincinnati Bengals", home: "Pittsburgh Steelers", day: "Sun 1:00 PM" },
+    { id: "w3_3", away: "New England Patriots", home: "Jacksonville Jaguars", day: "Sun 1:00 PM" },
+    { id: "w3_4", away: "Tennessee Titans", home: "New York Giants", day: "Sun 1:00 PM" },
+    { id: "w3_5", away: "Seattle Seahawks", home: "Washington Commanders", day: "Sun 1:00 PM" },
+    { id: "w3_6", away: "New York Jets", home: "Detroit Lions", day: "Sun 1:00 PM" },
+    { id: "w3_7", away: "Carolina Panthers", home: "Cleveland Browns", day: "Sun 1:00 PM" },
+    { id: "w3_8", away: "Kansas City Chiefs", home: "Miami Dolphins", day: "Sun 1:00 PM" },
+    { id: "w3_9", away: "Dallas Cowboys", home: "Philadelphia Eagles", day: "Sun 4:25 PM" },
+    { id: "w3_10", away: "Los Angeles Rams", home: "Denver Broncos", day: "Sun 4:25 PM" },
+    { id: "w3_11", away: "San Francisco 49ers", home: "Las Vegas Raiders", day: "Sun 8:20 PM" },
+    { id: "w3_12", away: "Chicago Bears", home: "Minnesota Vikings", day: "Mon 8:15 PM" }
+  ],
+  4: [
+    { id: "w4_1", away: "Pittsburgh Steelers", home: "Cleveland Browns", day: "Thu 8:15 PM" },
+    { id: "w4_2", away: "Los Angeles Chargers", home: "Seattle Seahawks", day: "Sun 1:00 PM" },
+    { id: "w4_3", away: "Kansas City Chiefs", home: "Las Vegas Raiders", day: "Sun 1:00 PM" },
+    { id: "w4_4", away: "Detroit Lions", home: "Carolina Panthers", day: "Sun 1:00 PM" },
+    { id: "w4_5", away: "Buffalo Bills", home: "Baltimore Ravens", day: "Sun 1:00 PM" },
+    { id: "w4_6", away: "Miami Dolphins", home: "New England Patriots", day: "Sun 1:00 PM" },
+    { id: "w4_7", away: "Green Bay Packers", home: "Dallas Cowboys", day: "Sun 4:25 PM" },
+    { id: "w4_8", away: "Philadelphia Eagles", home: "Chicago Bears", day: "Mon 8:15 PM" }
+  ],
+  5: [
+    { id: "w5_1", away: "Tampa Bay Buccaneers", home: "Dallas Cowboys", day: "Thu 8:15 PM" },
+    { id: "w5_2", away: "Philadelphia Eagles", home: "Jacksonville Jaguars", day: "Sun 9:30 AM" },
+    { id: "w5_3", away: "Las Vegas Raiders", home: "New England Patriots", day: "Sun 1:00 PM" },
+    { id: "w5_4", away: "Houston Texans", home: "Tennessee Titans", day: "Sun 1:00 PM" },
+    { id: "w5_5", away: "Cleveland Browns", home: "New York Jets", day: "Sun 1:00 PM" },
+    { id: "w5_6", away: "Indianapolis Colts", home: "Pittsburgh Steelers", day: "Sun 1:00 PM" },
+    { id: "w5_7", away: "Cincinnati Bengals", home: "Miami Dolphins", day: "Sun 4:05 PM" },
+    { id: "w5_8", away: "Atlanta Falcons", home: "New Orleans Saints", day: "Mon 8:15 PM" }
+  ],
+  6: [
+    { id: "w6_1", away: "Seattle Seahawks", home: "Denver Broncos", day: "Thu 8:15 PM" },
+    { id: "w6_2", away: "Houston Texans", home: "Jacksonville Jaguars", day: "Sun 9:30 AM" },
+    { id: "w6_3", away: "New York Jets", home: "New England Patriots", day: "Sun 1:00 PM" },
+    { id: "w6_4", away: "Pittsburgh Steelers", home: "Tampa Bay Buccaneers", day: "Sun 1:00 PM" },
+    { id: "w6_5", away: "Carolina Panthers", home: "Philadelphia Eagles", day: "Sun 1:00 PM" },
+    { id: "w6_6", away: "Chicago Bears", home: "Atlanta Falcons", day: "Sun 1:00 PM" },
+    { id: "w6_7", away: "Tennessee Titans", home: "Indianapolis Colts", day: "Sun 4:05 PM" },
+    { id: "w6_8", away: "Buffalo Bills", home: "Los Angeles Rams", day: "Mon 8:15 PM" }
+  ],
+  7: [
+    { id: "w7_1", away: "New England Patriots", home: "Chicago Bears", day: "Thu 8:15 PM" },
+    { id: "w7_2", away: "Pittsburgh Steelers", home: "New Orleans Saints", day: "Sun 9:30 AM" },
+    { id: "w7_3", away: "Cleveland Browns", home: "Tennessee Titans", day: "Sun 1:00 PM" },
+    { id: "w7_4", away: "Miami Dolphins", home: "New York Jets", day: "Sun 1:00 PM" },
+    { id: "w7_5", away: "Indianapolis Colts", home: "Minnesota Vikings", day: "Sun 1:00 PM" },
+    { id: "w7_6", away: "Cincinnati Bengals", home: "Baltimore Ravens", day: "Sun 1:00 PM" },
+    { id: "w7_7", away: "New York Giants", home: "Houston Texans", day: "Sun 4:05 PM" },
+    { id: "w7_8", away: "Green Bay Packers", home: "San Francisco 49ers", day: "Mon 8:15 PM" }
+  ],
+  8: [
+    { id: "w8_1", away: "Dallas Cowboys", home: "Denver Broncos", day: "Thu 8:15 PM" },
+    { id: "w8_2", away: "Baltimore Ravens", home: "Cleveland Browns", day: "Sun 1:00 PM" },
+    { id: "w8_3", away: "Chicago Bears", home: "Green Bay Packers", day: "Sun 1:00 PM" },
+    { id: "w8_4", away: "Buffalo Bills", home: "Miami Dolphins", day: "Sun 1:00 PM" },
+    { id: "w8_5", away: "Los Angeles Rams", home: "Seattle Seahawks", day: "Sun 4:05 PM" },
+    { id: "w8_6", away: "Kansas City Chiefs", home: "San Francisco 49ers", day: "Sun 4:25 PM" }
+  ],
+  9: [
+    { id: "w9_1", away: "Jacksonville Jaguars", home: "Baltimore Ravens", day: "Thu 8:15 PM" },
+    { id: "w9_2", away: "Cincinnati Bengals", home: "Atlanta Falcons", day: "Sun 9:30 AM" },
+    { id: "w9_3", away: "New York Jets", home: "Kansas City Chiefs", day: "Sun 1:00 PM" },
+    { id: "w9_4", away: "Cleveland Browns", home: "New Orleans Saints", day: "Sun 1:00 PM" },
+    { id: "w9_5", away: "Denver Broncos", home: "Carolina Panthers", day: "Sun 1:00 PM" },
+    { id: "w9_6", away: "Dallas Cowboys", home: "Indianapolis Colts", day: "Sun 4:05 PM" },
+    { id: "w9_7", away: "Detroit Lions", home: "Miami Dolphins", day: "Mon 8:15 PM" }
+  ],
+  10: [
+    { id: "w10_1", away: "Washington Commanders", home: "New York Giants", day: "Thu 8:15 PM" },
+    { id: "w10_2", away: "New England Patriots", home: "Detroit Lions", day: "Sun 9:30 AM" },
+    { id: "w10_3", away: "Buffalo Bills", home: "New York Jets", day: "Sun 1:00 PM" },
+    { id: "w10_4", away: "Miami Dolphins", home: "Indianapolis Colts", day: "Sun 1:00 PM" },
+    { id: "w10_5", away: "Kansas City Chiefs", home: "Atlanta Falcons", day: "Sun 1:00 PM" },
+    { id: "w10_6", away: "Minnesota Vikings", home: "Green Bay Packers", day: "Sun 4:25 PM" },
+    { id: "w10_7", away: "Jacksonville Jaguars", home: "Tennessee Titans", day: "Mon 8:15 PM" }
+  ],
+  11: [
+    { id: "w11_1", away: "Indianapolis Colts", home: "Houston Texans", day: "Thu 8:15 PM" },
+    { id: "w11_2", away: "Arizona Cardinals", home: "Kansas City Chiefs", day: "Sun 1:00 PM" },
+    { id: "w11_3", away: "Tampa Bay Buccaneers", home: "Detroit Lions", day: "Sun 1:00 PM" },
+    { id: "w11_4", away: "Jacksonville Jaguars", home: "New York Giants", day: "Sun 1:00 PM" },
+    { id: "w11_5", away: "Miami Dolphins", home: "Buffalo Bills", day: "Sun 1:00 PM" },
+    { id: "w11_6", away: "Tennessee Titans", home: "Dallas Cowboys", day: "Sun 4:05 PM" },
+    { id: "w11_7", away: "Baltimore Ravens", home: "Carolina Panthers", day: "Mon 8:15 PM" }
+  ],
+  12: [
+    { id: "w12_1", away: "Green Bay Packers", home: "Los Angeles Rams", day: "Wed 8:00 PM" },
+    { id: "w12_2", away: "Chicago Bears", home: "Detroit Lions", day: "Thu 1:00 PM" },
+    { id: "w12_3", away: "Philadelphia Eagles", home: "Dallas Cowboys", day: "Thu 4:30 PM" },
+    { id: "w12_4", away: "Kansas City Chiefs", home: "Buffalo Bills", day: "Thu 8:20 PM" },
+    { id: "w12_5", away: "Denver Broncos", home: "Pittsburgh Steelers", day: "Fri 3:00 PM" },
+    { id: "w12_6", away: "New Orleans Saints", home: "Cincinnati Bengals", day: "Sun 1:00 PM" },
+    { id: "w12_7", away: "Las Vegas Raiders", home: "Cleveland Browns", day: "Sun 1:00 PM" },
+    { id: "w12_8", away: "Baltimore Ravens", home: "Houston Texans", day: "Sun 1:00 PM" }
+  ],
+  13: [
+    { id: "w13_1", away: "Miami Dolphins", home: "Pittsburgh Steelers", day: "Thu 8:15 PM" },
+    { id: "w13_2", away: "Buffalo Bills", home: "Tampa Bay Buccaneers", day: "Sun 1:00 PM" },
+    { id: "w13_3", away: "Houston Texans", home: "Indianapolis Colts", day: "Sun 1:00 PM" },
+    { id: "w13_4", away: "San Francisco 49ers", home: "Seattle Seahawks", day: "Sun 4:25 PM" },
+    { id: "w13_5", away: "Dallas Cowboys", home: "Minnesota Vikings", day: "Mon 8:15 PM" }
+  ],
+  14: [
+    { id: "w14_1", away: "Detroit Lions", home: "Green Bay Packers", day: "Thu 8:15 PM" },
+    { id: "w14_2", away: "Carolina Panthers", home: "New Orleans Saints", day: "Sun 1:00 PM" },
+    { id: "w14_3", away: "Cincinnati Bengals", home: "Cleveland Browns", day: "Sun 1:00 PM" },
+    { id: "w14_4", away: "Kansas City Chiefs", home: "Denver Broncos", day: "Sun 4:25 PM" },
+    { id: "w14_5", away: "Los Angeles Chargers", home: "Las Vegas Raiders", day: "Mon 8:15 PM" }
+  ],
+  15: [
+    { id: "w15_1", away: "Atlanta Falcons", home: "Tampa Bay Buccaneers", day: "Thu 8:15 PM" },
+    { id: "w15_2", away: "Pittsburgh Steelers", home: "Baltimore Ravens", day: "Sun 1:00 PM" },
+    { id: "w15_3", away: "Philadelphia Eagles", home: "Washington Commanders", day: "Sun 1:00 PM" },
+    { id: "w15_4", away: "Los Angeles Rams", home: "San Francisco 49ers", day: "Sun 4:25 PM" },
+    { id: "w15_5", away: "Seattle Seahawks", home: "Arizona Cardinals", day: "Mon 8:15 PM" }
+  ],
+  16: [
+    { id: "w16_1", away: "Denver Broncos", home: "Los Angeles Chargers", day: "Thu 8:15 PM" },
+    { id: "w16_2", away: "Minnesota Vikings", home: "Detroit Lions", day: "Sun 1:00 PM" },
+    { id: "w16_3", away: "New York Giants", home: "Philadelphia Eagles", day: "Sun 1:00 PM" },
+    { id: "w16_4", away: "San Francisco 49ers", home: "Miami Dolphins", day: "Sun 4:25 PM" },
+    { id: "w16_5", away: "Chicago Bears", home: "Green Bay Packers", day: "Mon 8:15 PM" }
+  ],
+  17: [
+    { id: "w17_1", away: "Dallas Cowboys", home: "Washington Commanders", day: "Thu 8:15 PM" },
+    { id: "w17_2", away: "Baltimore Ravens", home: "Cincinnati Bengals", day: "Sun 1:00 PM" },
+    { id: "w17_3", away: "Houston Texans", home: "Jacksonville Jaguars", day: "Sun 1:00 PM" },
+    { id: "w17_4", away: "Las Vegas Raiders", home: "Kansas City Chiefs", day: "Sun 1:00 PM" },
+    { id: "w17_5", away: "Green Bay Packers", home: "Minnesota Vikings", day: "Sun 4:25 PM" }
+  ],
+  18: [
+    { id: "w18_1", away: "Buffalo Bills", home: "New York Jets", day: "Sun 1:00 PM" },
+    { id: "w18_2", away: "New England Patriots", home: "Miami Dolphins", day: "Sun 1:00 PM" },
+    { id: "w18_3", away: "Cleveland Browns", home: "Pittsburgh Steelers", day: "Sun 1:00 PM" },
+    { id: "w18_4", away: "Tampa Bay Buccaneers", home: "Carolina Panthers", day: "Sun 1:00 PM" },
+    { id: "w18_5", away: "Los Angeles Chargers", home: "Denver Broncos", day: "Sun 4:25 PM" },
+    { id: "w18_6", away: "San Francisco 49ers", home: "Los Angeles Rams", day: "Sun 4:25 PM" }
+  ]
+};
+
+// Current active week state
+let currentWeek = 2;
+
+// User picks and game results loaded from LocalStorage
+let userPicks = JSON.parse(localStorage.getItem('nfl_picks_kyle_clayton')) || {};
+let gameResults = JSON.parse(localStorage.getItem('nfl_results_kyle_clayton')) || {};
+
+// Setup Week Tabs
+function initWeekNav() {
+  const navContainer = document.getElementById('weekNav');
+  navContainer.innerHTML = '';
+
+  for (let w = 2; w <= 18; w++) {
+    const btn = document.createElement('button');
+    btn.className = `week-btn ${w === currentWeek ? 'active' : ''}`;
+    btn.textContent = `Week ${w}`;
+    btn.onclick = () => {
+      currentWeek = w;
+      initWeekNav();
+      renderGames();
+    };
+    navContainer.appendChild(btn);
+  }
+}
+
+// Render Games Grid for Active Week
+function renderGames() {
+  const grid = document.getElementById('gamesGrid');
+  grid.innerHTML = '';
+
+  const weekGames = nflSchedule[currentWeek] || [];
+
+  weekGames.forEach(game => {
+    const kylePick = userPicks[game.id]?.kyle || '';
+    const claytonPick = userPicks[game.id]?.clayton || '';
+    const winner = gameResults[game.id] || '';
+
+    // Card Element
+    const card = document.createElement('div');
+    card.className = 'game-card';
+
+    // Status Badges
+    let kyleBadge = '';
+    let claytonBadge = '';
+
+    if (winner) {
+      if (kylePick) {
+        kyleBadge = kylePick === winner 
+          ? `<span class="status-badge badge-correct">✓ Win</span>` 
+          : `<span class="status-badge badge-incorrect">✗ Loss</span>`;
+      }
+      if (claytonPick) {
+        claytonBadge = claytonPick === winner 
+          ? `<span class="status-badge badge-correct">✓ Win</span>` 
+          : `<span class="status-badge badge-incorrect">✗ Loss</span>`;
+      }
+    }
+
+    card.innerHTML = `
+      <div class="game-header">
+        <span>Week ${currentWeek}</span>
+        <span>${game.day}</span>
+      </div>
+
+      <div class="team-row">
+        <div><span class="team-type">AWAY</span><span class="team-name">${game.away}</span></div>
+      </div>
+
+      <div class="team-row">
+        <div><span class="team-type">HOME</span><span class="team-name">${game.home}</span></div>
+      </div>
+
+      <div class="picks-container">
+        <!-- Kyle Pick Box -->
+        <div class="pick-box">
+          <div class="player-label player-kyle">KYLE ${kyleBadge}</div>
+          <div class="pick-selector">
+            <button class="pick-btn ${kylePick === game.away ? 'selected-kyle' : ''}" 
+              onclick="makePick('${game.id}', 'kyle', '${game.away}')">${game.away}</button>
+            <button class="pick-btn ${kylePick === game.home ? 'selected-kyle' : ''}" 
+              onclick="makePick('${game.id}', 'kyle', '${game.home}')">${game.home}</button>
+          </div>
+        </div>
+
+        <!-- Clayton Pick Box -->
+        <div class="pick-box">
+          <div class="player-label player-clayton">CLAYTON ${claytonBadge}</div>
+          <div class="pick-selector">
+            <button class="pick-btn ${claytonPick === game.away ? 'selected-clayton' : ''}" 
+              onclick="makePick('${game.id}', 'clayton', '${game.away}')">${game.away}</button>
+            <button class="pick-btn ${claytonPick === game.home ? 'selected-clayton' : ''}" 
+              onclick="makePick('${game.id}', 'clayton', '${game.home}')">${game.home}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual Result Selector -->
+      <div class="result-container">
+        <span class="result-label">Game Winner:</span>
+        <select class="result-select" onchange="setWinner('${game.id}', this.value)">
+          <option value="">-- Pending --</option>
+          <option value="${game.away}" ${winner === game.away ? 'selected' : ''}>${game.away}</option>
+          <option value="${game.home}" ${winner === game.home ? 'selected' : ''}>${game.home}</option>
+        </select>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  updateScoreboard();
+}
+
+// Save Pick Selection
+function makePick(gameId, player, team) {
+  if (!userPicks[gameId]) {
+    userPicks[gameId] = {};
+  }
+  
+  // Toggle selection if clicked again
+  if (userPicks[gameId][player] === team) {
+    userPicks[gameId][player] = '';
+  } else {
+    userPicks[gameId][player] = team;
+  }
+
+  localStorage.setItem('nfl_picks_kyle_clayton', JSON.stringify(userPicks));
+  renderGames();
+}
+
+// Save Official Winner
+function setWinner(gameId, winnerTeam) {
+  if (winnerTeam) {
+    gameResults[gameId] = winnerTeam;
+  } else {
+    delete gameResults[gameId];
+  }
+
+  localStorage.setItem('nfl_results_kyle_clayton', JSON.stringify(gameResults));
+  renderGames();
+}
+
+// Calculate and Update Total Stats
+function updateScoreboard() {
+  let kyleWins = 0, kyleLosses = 0;
+  let claytonWins = 0, claytonLosses = 0;
+
+  // Iterate over all weeks & games
+  Object.keys(nflSchedule).forEach(week => {
+    nflSchedule[week].forEach(game => {
+      const winner = gameResults[game.id];
+      if (winner) {
+        const kPick = userPicks[game.id]?.kyle;
+        const cPick = userPicks[game.id]?.clayton;
+
+        if (kPick) {
+          if (kPick === winner) kyleWins++;
+          else kyleLosses++;
+        }
+
+        if (cPick) {
+          if (cPick === winner) claytonWins++;
+          else claytonLosses++;
+        }
+      }
+    });
+  });
+
+  // Calculate percentages
+  const kyleTotal = kyleWins + kyleLosses;
+  const kylePct = kyleTotal > 0 ? (kyleWins / kyleTotal).toFixed(3) : '.000';
+
+  const claytonTotal = claytonWins + claytonLosses;
+  const claytonPct = claytonTotal > 0 ? (claytonWins / claytonTotal).toFixed(3) : '.000';
+
+  // Update DOM
+  document.getElementById('kyleWins').textContent = kyleWins;
+  document.getElementById('kyleLosses').textContent = kyleLosses;
+  document.getElementById('kylePct').textContent = kylePct.replace(/^0/, '');
+
+  document.getElementById('claytonWins').textContent = claytonWins;
+  document.getElementById('claytonLosses').textContent = claytonLosses;
+  document.getElementById('claytonPct').textContent = claytonPct.replace(/^0/, '');
+
+  // Update Leaderboard Badge
+  const leaderBadge = document.getElementById('leaderBadge');
+  if (kyleWins > claytonWins) {
+    leaderBadge.textContent = `Leader: Kyle (+${kyleWins - claytonWins})`;
+    leaderBadge.style.background = 'linear-gradient(45deg, #3a86ff, #00b4d8)';
+    leaderBadge.style.color = '#fff';
+  } else if (claytonWins > kyleWins) {
+    leaderBadge.textContent = `Leader: Clayton (+${claytonWins - kyleWins})`;
+    leaderBadge.style.background = 'linear-gradient(45deg, #ff0055, #ff5050)';
+    leaderBadge.style.color = '#fff';
+  } else {
+    leaderBadge.textContent = 'Tied Game';
+    leaderBadge.style.background = 'linear-gradient(45deg, #ffb703, #fb8500)';
+    leaderBadge.style.color = '#000';
+  }
+}
+
+// Reset LocalStorage Data
+function resetPicks() {
+  if (confirm("Are you sure you want to reset all picks and scores?")) {
+    localStorage.removeItem('nfl_picks_kyle_clayton');
+    localStorage.removeItem('nfl_results_kyle_clayton');
+    userPicks = {};
+    gameResults = {};
+    renderGames();
+  }
+}
+
+// Initial Load
+window.onload = function() {
+  initWeekNav();
+  renderGames();
+};
+</script>
+
+</body>
+</html>
